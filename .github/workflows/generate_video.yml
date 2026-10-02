@@ -21,9 +21,11 @@ jobs:
       with:
         python-version: '3.11'
 
-      # Install the modern uv package manager on the runner
-    - name: Install uv
-      run: curl -LsSf https://astral.sh | sh
+      # Automatically installs and configures uv securely on the cloud machine
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v5
+      with:
+        version: "latest"
 
       # Synchronize requirements safely via the lockfile
     - name: Install Dependencies
