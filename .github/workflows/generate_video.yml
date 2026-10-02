@@ -1,3 +1,5 @@
+Create a 5-minute viral spooky story video based on a documented real event. The story should feel genuinely unsettling, mysterious, and cinematic while clearly distinguishing verified facts from dramatized elements. Visual style: Popular modern comic-book storytelling — dark graphic-novel panels, cinematic compositions, dramatic shadows, high-contrast lighting, subtle film grain, atmospheric fog, expressive character silhouettes, detailed environments, occasional slow camera movement across illustrated panels, and striking transitions between scenes. Use a consistent visual style throughout. Story structure: 0:00–0:20 — Hook: Open with the most disturbing or mysterious moment. Start with a compelling question or statement that immediately creates curiosity. 0:20–1:00 — Setup: Introduce the real event, location, approximate date, and people involved. 1:00–3:30 — Escalation: Tell the story chronologically, gradually increasing tension. Reveal strange details one at a time rather than explaining everything immediately. 3:30–4:30 — Climax: Deliver the most frightening or unexplained part of the event using intense comic-book visuals, dramatic pauses, and escalating sound design. 4:30–5:00 — Aftermath: Explain what happened afterward and what is actually documented. End with an eerie final detail or unanswered question. Narration: Deep, calm male voice with a cinematic storytelling style. Slow pacing during frightening moments, deliberate pauses before major reveals, and subtle changes in intensity as tension builds. Avoid exaggerated acting or cheesy horror narration. Subtitles: Add clean, highly readable subtitles synchronized precisely with the narration. Use white text with subtle black shadow/outline. Emphasize a few important words visually during major reveals. Sound design: Low atmospheric drones, distant environmental sounds, subtle footsteps, creaking structures, restrained bass impacts, and carefully timed silence. Keep music underneath the narration and avoid overpowering the voice. Editing: Fast enough to maintain TikTok/YouTube Shorts-style viewer retention while still telling a complete story. Use visual changes every few seconds, occasional dramatic zooms, panel transitions, close-ups, environmental establishing shots, and brief moments of darkness before major reveals. Accuracy: The central event must be a real, documented incident. Do not invent witnesses, quotes, evidence, locations, dates, or supernatural claims. If some details are disputed or unexplained, explicitly present them as disputed or unexplained. Ending: Finish with a memorable, unsettling final line that makes viewers want to comment, research the event, or watch the story again. Overall tone: authentic, eerie, suspenseful, mysterious, cinematic, and highly shareable — frightening without relying on gore.
+
 name: Automated Faceless Video Generator
 
 on:
@@ -13,56 +15,37 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code Repository
-      uses: actions/checkout@v4
-      
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
 
-      # Automatically installs and configures uv securely on the cloud machine
-    - name: Set up uv
-      uses: astral-sh/setup-uv@v5
-      with:
-        version: "latest"
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
 
-      # Synchronize requirements safely via the lockfile
-    - name: Install Dependencies
-      run: uv sync --frozen
-        
-    - name: Configure System Audio-Visual Engines
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y ffmpeg espeak libespeak-dev
+      - name: Configure System Audio-Visual Engines
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg espeak libespeak-dev
 
-    - name: Setup Desktop Python Environment
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-        cache: 'pip'
+      - name: Install Project Dependencies
+        run: uv sync --frozen
 
-    - name: Install Video Core Dependencies
-      run: |
-        pip install --upgrade pip setuptools wheel
-        # Strips out any database locking properties automatically before installing
-        if [ -f pyproject.toml ]; then sed -i '/psycopg/d' pyproject.toml; fi
-        if [ -f requirements.txt ]; then sed -i '/psycopg/d' requirements.txt; fi
-        pip install -r requirements.txt || pip install .
+      - name: Execute Video Render Loop
+        env:
+          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          uv run python -m Backend.main --prompt "${{ github.event.inputs.topic }}"
 
-    - name: Execute Video Render Loop
-      env:
-        PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      run: |
-        python Backend/main.py --prompt "${{ github.event.inputs.topic }}"
-
-    - name: Upload Finished MP4 Video
-      uses: actions/upload-artifact@v4
-      with:
-        name: Faceless-AI-Short
-        path: |
-          output/
-          Backend/output/
-          *.mp4
-        if-no-files-found: warn
+      - name: Upload Finished MP4 Video
+        uses: actions/upload-artifact@v4
+        with:
+          name: Faceless-AI-Short
+          path: |
+            output/
+            Backend/output/
+            *.mp4
+          if-no-files-found: warn
+          
