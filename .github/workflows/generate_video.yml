@@ -45,10 +45,10 @@ jobs:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           PYTHONPATH: Backend
-          # Tells MoviePy exactly where the ImageMagick compiler is located on Linux
           IMAGEMAGICK_BINARY: /usr/bin/convert
         run: |
-          uv run --python 3.11 python -m Backend.main \
+          # Changed from 'Backend.main' to 'Backend.cli' to avoid starting the web interface server
+          uv run --python 3.11 python -m Backend.cli \
             --prompt "${{ github.event.inputs.topic }}" \
             --publish_to "youtube" \
             --video_source "pixabay"
