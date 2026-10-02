@@ -47,8 +47,11 @@ jobs:
           PYTHONPATH: Backend
           IMAGEMAGICK_BINARY: /usr/bin/convert
         run: |
-          # Executes the straight generation engine pipeline script
-          uv run --python 3.11 python -m Backend.pipeline \
+          # 1. Setup the missing system tracking database
+          uv run --python 3.11 python -c "from Backend.db import init_db; init_db()"
+          
+          # 2. Tell the system worker to actively generate your video prompt
+          uv run --python 3.11 python -m Backend.worker \
             --prompt "${{ github.event.inputs.topic }}" \
             --publish_to "youtube" \
             --video_source "pixabay"
