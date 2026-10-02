@@ -47,8 +47,8 @@ jobs:
           PYTHONPATH: Backend
           IMAGEMAGICK_BINARY: /usr/bin/convert
         run: |
-          # Changed from 'Backend.main' to 'Backend.cli' to avoid starting the web interface server
-          uv run --python 3.11 python -m Backend.cli \
+          # Executes the straight generation engine pipeline script
+          uv run --python 3.11 python -m Backend.pipeline \
             --prompt "${{ github.event.inputs.topic }}" \
             --publish_to "youtube" \
             --video_source "pixabay"
