@@ -16,7 +16,6 @@ jobs:
       - name: Checkout Code Repository
         uses: actions/checkout@v4
 
-      # Force python-version to 3.11 to find matching pre-built wheels
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
@@ -28,27 +27,26 @@ jobs:
           version: "latest"
           enable-cache: true
 
-      # Added libjpeg-dev and zlib1g-dev required for image rendering
+      # Added imagemagick to the installation line
       - name: Configure System Audio-Visual Engines
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg espeak libespeak-dev libjpeg-dev zlib1g-dev
+          sudo apt-get install -y ffmpeg espeak libespeak-dev libjpeg-dev zlib1g-dev imagemagick
 
-      # Force uv to use the 3.11 environment we explicitly built above
       - name: Install Project Dependencies
         run: uv sync --frozen --python 3.11
 
-      # Force python execution within the 3.11 virtual environment
       - name: Execute Video Render Loop
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
-          # Providing a fake key tricks the code's strict validation check
           PEXELS_API_KEY: "dummy_key_to_bypass_validation"
           TIKTOK_SESSION_ID: ${{ secrets.TIKTOK_SESSION_ID }}
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           PYTHONPATH: Backend
+          # Tells MoviePy exactly where the ImageMagick compiler is located on Linux
+          IMAGEMAGICK_BINARY: /usr/bin/convert
         run: |
           uv run --python 3.11 python -m Backend.main \
             --prompt "${{ github.event.inputs.topic }}" \
