@@ -41,13 +41,18 @@ jobs:
       # Force python execution within the 3.11 virtual environment
       - name: Execute Video Render Loop
         env:
-          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          # Tells Python to look inside Backend/ for packages like 'db'
+          # Expose your alternative Pixabay credential to the runtime
+          PIXABAY_API_KEY: ${{ secrets.PIXABAY_API_KEY }}
+          TIKTOK_SESSION_ID: ${{ secrets.TIKTOK_SESSION_ID }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           PYTHONPATH: Backend
         run: |
-          uv run --python 3.11 python -m Backend.main --prompt "${{ github.event.inputs.topic }}"
-
+          uv run --python 3.11 python -m Backend.main \
+            --prompt "${{ github.event.inputs.topic }}" \
+            --publish_to "youtube" \
+            --video_source "pixabay"
 
       - name: Upload Finished MP4 Video
         uses: actions/upload-artifact@v4
