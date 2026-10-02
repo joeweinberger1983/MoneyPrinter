@@ -16,26 +16,35 @@ jobs:
       - name: Checkout Code Repository
         uses: actions/checkout@v4
 
+      # Force python-version to 3.11 to find matching pre-built wheels
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
       - name: Set up uv
         uses: astral-sh/setup-uv@v5
         with:
           version: "latest"
           enable-cache: true
 
+      # Added libjpeg-dev and zlib1g-dev required for image rendering
       - name: Configure System Audio-Visual Engines
         run: |
           sudo apt-get update
-          sudo apt-get install -y ffmpeg espeak libespeak-dev
+          sudo apt-get install -y ffmpeg espeak libespeak-dev libjpeg-dev zlib1g-dev
 
+      # Force uv to use the 3.11 environment we explicitly built above
       - name: Install Project Dependencies
-        run: uv sync --frozen
+        run: uv sync --frozen --python 3.11
 
+      # Force python execution within the 3.11 virtual environment
       - name: Execute Video Render Loop
         env:
           PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          uv run python -m Backend.main --prompt "${{ github.event.inputs.topic }}"
+          uv run --python 3.11 python -m Backend.main --prompt "${{ github.event.inputs.topic }}"
 
       - name: Upload Finished MP4 Video
         uses: actions/upload-artifact@v4
