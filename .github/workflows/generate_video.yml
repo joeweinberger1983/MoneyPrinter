@@ -1,0 +1,53 @@
+name: Automated Faceless Video Generator
+
+on:
+  workflow_dispatch:
+    inputs:
+      topic:
+        description: 'Enter your video topic prompt'
+        required: true
+        default: '3 shocking facts about deep space'
+
+jobs:
+  build-and-generate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code Repository
+      uses: actions/checkout@v4
+
+    - name: Configure System Audio-Visual Engines
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ffmpeg espeak libespeak-dev
+
+    - name: Setup Desktop Python Environment
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install Video Core Dependencies
+      run: |
+        pip install --upgrade pip setuptools wheel
+        # Strips out any database locking properties automatically before installing
+        if [ -f pyproject.toml ]; then sed -i '/psycopg/d' pyproject.toml; fi
+        if [ -f requirements.txt ]; then sed -i '/psycopg/d' requirements.txt; fi
+        pip install -r requirements.txt || pip install .
+
+    - name: Execute Video Render Loop
+      env:
+        PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      run: |
+        python Backend/main.py --prompt "${{ github.event.inputs.topic }}"
+
+    - name: Upload Finished MP4 Video
+      uses: actions/upload-artifact@v4
+      with:
+        name: Faceless-AI-Short
+        path: |
+          output/
+          Backend/output/
+          *.mp4
+        if-no-files-found: warn
