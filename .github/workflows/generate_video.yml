@@ -16,10 +16,19 @@ jobs:
     - name: Checkout Code Repository
       uses: actions/checkout@v4
       
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
 
+      # Install the modern uv package manager on the runner
+    - name: Install uv
+      run: curl -LsSf https://astral.sh | sh
+
+      # Synchronize requirements safely via the lockfile
+    - name: Install Dependencies
+      run: uv sync --frozen
+        
     - name: Configure System Audio-Visual Engines
       run: |
         sudo apt-get update
